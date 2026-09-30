@@ -10,14 +10,27 @@ Farkas check uses all m! full rankings (not prefixes) in exact rationals.
 import itertools, json, sys
 from fractions import Fraction
 
+# Every soundness check below is an explicit test, never a bare assert: python -O
+# and PYTHONOPTIMIZE strip asserts, and the CNF depends only on the core supports,
+# so a skipped weight check would still write the manifest-hash CNF.
+if sys.flags.optimize:
+    sys.exit('FAIL: mkcnf.py refuses to run under python -O / PYTHONOPTIMIZE')
+
+
+def die(msg):
+    sys.exit(f'FAIL: {msg}')
+
+
 cert_path, m, k, out = sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4]
 data = json.load(open(cert_path))
-assert data['m'] == m and data['k'] == k and data['status'] == 'unsat' and data['orbit']
+if not (data['m'] == m and data['k'] == k and data['status'] == 'unsat' and data['orbit']):
+    die('certificate header does not match m, k, status unsat, orbit')
 
 sets = list(itertools.combinations(range(m), k))
 events = [(w, c) for w in sets for c in range(m) if c not in w]
 eid = {e: i for i, e in enumerate(events)}
-assert len(events) == data['event_count']
+if len(events) != data['event_count']:
+    die(f"event count {len(events)} != {data['event_count']}")
 
 # Exact Farkas check over all full rankings.
 rankings = list(itertools.permutations(range(m)))
@@ -30,15 +43,19 @@ for leaf in data['dual_leaves']:
     y = {}
     for i, s in leaf['weights']:
         q = Fraction(s)
-        assert q > 0
+        if not q > 0:
+            die(f'nonpositive weight {q} on event {i}')
         y[int(i)] = y.get(int(i), 0) + q
-    assert sum(y.values()) == 1
+    if sum(y.values()) != 1:
+        die(f'weights sum to {sum(y.values())}, not 1')
     b = max(sum(q for i, q in y.items() if tops(r, *events[i])) for r in rankings)
-    assert b < Fraction(1, 2), b
+    if not b < Fraction(1, 2):
+        die(f'not a core: bound {b} >= 1/2 for {sorted(y)}')
     worst = max(worst, b)
     cores.append(sorted(y))
     print('core', [events[i] for i in sorted(y)], 'max', b)
 print('farkas: all', len(cores), 'cores verified over', len(rankings), 'full rankings; worst bound', worst)
+print(f'worst_bound={worst}')
 
 clauses = []
 for w in sets:

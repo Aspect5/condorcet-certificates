@@ -6,23 +6,34 @@
 #   ./verify.sh --quick    hashes, CNF regeneration, m = 7 proof if present
 #
 # Needs: bash, python3 with numpy, gcc, git, curl, zstd, xz, sha256sum.
-# Full check: about 30 GB RAM for cake_lpr, about 3 GB disk for the leaf CNFs,
+# Full check: cake_lpr peaks near 25.4 GiB RSS with the default heap (runs capped
+# at 28 GiB succeeded; use a machine with at least 32 GiB), about 3 GB disk for the leaf CNFs,
 # about 25 CPU-minutes, 5.1 GB download. Proofs are read from m7/proofs and
 # m8/proofs; a missing proof is downloaded from the GitHub release (PROOF_URL)
 # and must match its hash in MANIFEST.sha256.
 # Env: CAKE_LPR=/path/to/cake_lpr skips the build; WORK=dir (default ./work);
-#      PYTHON=python with numpy (default python3); CAKE_HEAP_MB (default 30000);
+#      PYTHON=python with numpy (default python3); CAKE_HEAP_MB (default 26000);
 #      LEAVES="Lcube-456-3 ..." checks only those m = 8 leaves (coverage then fails).
 set -euo pipefail
 cd "$(dirname "$0")"
 ROOT=$PWD
 QUICK=0; [ "${1:-}" = --quick ] && QUICK=1
 WORK=${WORK:-$ROOT/work}; mkdir -p "$WORK/m8" "$WORK/checks"
-HEAP=${CAKE_HEAP_MB:-30000}
+HEAP=${CAKE_HEAP_MB:-26000}
 PY=${PYTHON:-python3}
 say() { printf '== %s\n' "$*"; }
 fail() { printf 'FAIL: %s\n' "$*"; exit 1; }
-want() { awk -v p="$1" '$2 == p { print $1 }' "$ROOT/MANIFEST.sha256"; }
+# MANIFEST.sha256 is the OpenTimestamps-anchored manifest; its own hash is fixed here.
+MANIFEST_SHA=ae319c72fe646532c836856be0f86572b8c92d10b84c6de9050815d572c77555
+# MANIFEST.post-stamp.sha256 lists the files changed after the stamp (the hardened
+# scripts). For those paths it overrides the anchored hash, and verify.sh says so.
+POST=$ROOT/MANIFEST.post-stamp.sha256
+want() {
+  local h
+  h=$(awk -v p="$1" '$2 == p { print $1 }' "$POST")
+  [ -n "$h" ] || h=$(awk -v p="$1" '$2 == p { print $1 }' "$ROOT/MANIFEST.sha256")
+  echo "$h"
+}
 sha() { sha256sum "$1" | cut -c1-64; }
 PROOF_URL=${PROOF_URL:-https://github.com/Aspect5/condorcet-certificates/releases/download/v1}
 fetch() {  # fetch PATH: download a missing proof, then check its manifest hash
@@ -30,8 +41,38 @@ fetch() {  # fetch PATH: download a missing proof, then check its manifest hash
   [ "$(sha "$1")" = "$(want "$1")" ] || fail "proof hash $1"
 }
 
+# The generators refuse -O themselves; check the interpreter here too, before any work.
+"$PY" -c 'import sys; sys.exit(sys.flags.optimize)' \
+  || fail "PYTHON runs with -O or PYTHONOPTIMIZE set; the exact checks would be skipped"
+
 say "1. hashes of the shipped files (MANIFEST.sha256)"
-sha256sum --quiet --ignore-missing -c MANIFEST.sha256 || fail "manifest mismatch"
+got=$(sha MANIFEST.sha256)
+echo "sha256(MANIFEST.sha256)=$got"
+[ "$got" = "$MANIFEST_SHA" ] || fail "MANIFEST.sha256 is not the timestamped manifest (want $MANIFEST_SHA)"
+echo "sha256(MANIFEST.post-stamp.sha256)=$(sha "$POST")"
+# Every manifest entry is accounted for: present and matching, or regenerated
+# (CNFs, compared in steps 3-5), or a proof (downloaded and compared in steps 3 and 6).
+n_present=0; n_regen=0; n_proof=0
+while read -r h p; do
+  [ -n "$p" ] || continue
+  e=$(want "$p")
+  [ "$e" = "$h" ] || echo "superseded after the stamp: $p (anchored ${h:0:12}..., now ${e:0:12}...)"
+  if [ -f "$p" ]; then
+    [ "$(sha "$p")" = "$e" ] || fail "hash mismatch: $p"
+    n_present=$((n_present + 1))
+  else
+    case $p in
+      m7/m7k3.cnf|m8/cnf/*.cnf) n_regen=$((n_regen + 1)) ;;
+      m7/proofs/*.lrat.xz|m8/proofs/*.lrat.zst) n_proof=$((n_proof + 1)) ;;
+      *) fail "manifest file missing and not regenerated or downloaded: $p" ;;
+    esac
+  fi
+done < MANIFEST.sha256
+while read -r h p; do
+  [ -n "$p" ] || continue
+  grep -q "  $p\$" MANIFEST.sha256 || fail "post-stamp entry not in the manifest: $p"
+done < "$POST"
+echo "manifest: $n_present present and matching, $n_regen CNFs to regenerate, $n_proof proofs to fetch or check"
 
 say "2. cake_lpr (formally verified LRAT checker, CakeML)"
 if [ -z "${CAKE_LPR:-}" ]; then
@@ -49,7 +90,9 @@ fi
 cake() { "$CAKE_LPR" --CML_HEAP_SIZE="$HEAP" --CML_STACK_SIZE=4000 "$1" "$2"; }
 
 say "3. m = 7: regenerate the CNF from the Farkas cores (exact rationals, all 5,040 rankings)"
-"$PY" m7/mkcnf.py m7/m7k3.json 7 3 "$WORK/m7k3.cnf" | tail -2
+"$PY" m7/mkcnf.py m7/m7k3.json 7 3 "$WORK/m7k3.cnf" > "$WORK/m7k3.gen.out" || fail "m7 generator"
+grep -v '^core ' "$WORK/m7k3.gen.out"
+grep -qx 'worst_bound=2/5' "$WORK/m7k3.gen.out" || fail "m7 worst bound is not 2/5"
 [ "$(sha "$WORK/m7k3.cnf")" = "$(want m7/m7k3.cnf)" ] || fail "m7 CNF hash"
 if [ $QUICK = 0 ] || [ -f m7/proofs/m7k3.lrat.xz ]; then
   fetch m7/proofs/m7k3.lrat.xz
@@ -65,7 +108,9 @@ fi
 
 say "4. m = 8: regenerate the base CNF (exact check of every core on all 40,320 rankings)"
 B=$WORK/m8/A145-none.cnf
-"$PY" m8/cert/gen.py m8/cert/long-160f-all-cores.json --out "$B"
+"$PY" m8/cert/gen.py m8/cert/long-160f-all-cores.json --out "$B" > "$WORK/m8-base.gen.out" || fail "m8 generator"
+cat "$WORK/m8-base.gen.out"
+grep -qx 'worst_bound=9/19' "$WORK/m8-base.gen.out" || fail "m8 worst bound is not 9/19"
 [ "$(sha "$B")" = "$(want m8/cnf/A145-none.cnf)" ] || fail "m8 base CNF hash"
 
 say "5. m = 8: the 21 cube leaves"
@@ -85,7 +130,7 @@ for t in $ALL; do
 done
 echo "21/21 leaf CNF hashes match"
 
-if [ $QUICK = 1 ]; then say "quick mode: m = 8 proofs not checked"; exit 0; fi
+if [ $QUICK = 1 ]; then say "quick mode: the 21 m = 8 proofs in the manifest were NOT checked"; exit 0; fi
 
 say "6. m = 8: cake_lpr on each leaf proof"
 for t in ${LEAVES:-$ALL}; do
@@ -103,4 +148,5 @@ done
 say "7. m = 8: leaves extend the base by unit cubes only, and the cubes cover every case"
 "$PY" m8/cert/cover.py "$B" "$WORK/checks" $(for t in $ALL; do echo "$WORK/m8/$(leafcnf "$t")"; done) | tee "$WORK/cover.out"
 tail -1 "$WORK/cover.out" | grep -qx 'COVERED | all leaves verified' || fail "coverage"
+[ -z "${LEAVES:-}" ] || fail "LEAVES was set: only some m = 8 proofs were checked"
 say "ALL CHECKS PASSED"

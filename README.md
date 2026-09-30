@@ -58,7 +58,7 @@ the same clause set (`m7/recompute/`). There is no Lean statement of the encodin
 ## Verify
 
 ```
-./verify.sh            # everything: about 25 CPU-minutes, 30 GB RAM, 5.1 GB download
+./verify.sh            # everything: about 25 CPU-minutes, 32 GiB machine, 5.1 GB download
 ./verify.sh --quick    # hashes and CNF regeneration only, a few minutes
 ```
 
@@ -67,6 +67,24 @@ commit, regenerates every CNF from the cores (rechecking each core exactly),
 compares CNF hashes, downloads any missing proof from the GitHub release and
 checks its hash, runs cake_lpr on every proof and requires `s VERIFIED UNSAT`,
 then runs `cover.py`. Needs python3 with numpy, gcc, git, curl, zstd and xz.
+
+Memory: the default `CAKE_HEAP_MB=26000` is the setting of all the authors' full
+runs. The independent recomputation ran every m = 8 proof under a hard 28 GiB
+memory cap, with 25.4 GiB peak RSS (`m8/recompute/README.md`). Use a machine with
+at least 32 GiB and keep other large jobs off it; a larger `CAKE_HEAP_MB` needs
+more memory, not less.
+
+What `verify.sh` enforces: it refuses to run if `PYTHON` has `-O` or
+`PYTHONOPTIMIZE` set (the generators refuse too, and none of their checks are
+Python `assert`s); it requires the generators to print `worst_bound=2/5` (m = 7)
+and `worst_bound=9/19` (m = 8); it prints `sha256(MANIFEST.sha256)` and fails
+unless it equals the timestamped
+`ae319c72fe646532c836856be0f86572b8c92d10b84c6de9050815d572c77555`; and it fails
+on any manifest entry that is missing and is neither a regenerated CNF nor a
+proof. The scripts hardened after the timestamp are listed with their new hashes
+in `MANIFEST.post-stamp.sha256`; `verify.sh` names each one it checks against
+that file instead of the anchored manifest. The cores, CNFs and proofs are
+unchanged and still match the anchored manifest.
 
 `MANIFEST.sha256` lists every file of the certificate, including the CNFs (which
 `verify.sh` regenerates) and the proofs. Its OpenTimestamps file

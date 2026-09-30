@@ -24,11 +24,23 @@ from fractions import Fraction
 
 import numpy as np
 
+# Every soundness check below is an explicit test, never a bare assert: python -O
+# and PYTHONOPTIMIZE strip asserts, and the CNF depends only on the core supports,
+# so a skipped weight check would still write the manifest-hash CNF.
+if sys.flags.optimize:
+    sys.exit('FAIL: gen.py refuses to run under python -O / PYTHONOPTIMIZE')
+
+
+def die(msg):
+    sys.exit(f'FAIL: {msg}')
+
+
 M = 8
 SETS = list(it.combinations(range(M), 3))
 EVENTS = [(w, c) for w in SETS for c in range(M) if c not in w]
 EID = {e: i for i, e in enumerate(EVENTS)}
-assert len(EVENTS) == 280
+if len(EVENTS) != 280:
+    die('expected 280 events')
 
 
 def event_truth():
@@ -46,9 +58,11 @@ def check_core(truth, core):
     y = {}
     for i, q in core:
         q = Fraction(q)
-        assert q > 0, 'nonpositive weight'
+        if not q > 0:
+            die(f'nonpositive weight {q} on event {i}')
         y[int(i)] = y.get(int(i), 0) + q
-    assert sum(y.values()) == 1, 'weights do not sum to 1'
+    if sum(y.values()) != 1:
+        die(f'weights sum to {sum(y.values())}, not 1')
     den = math.lcm(*(q.denominator for q in y.values()))
     total = np.zeros(truth.shape[1], dtype=object)
     for i, q in y.items():
@@ -103,12 +117,14 @@ def main():
     for path in a.cores:
         for core in json.load(open(path)):
             support, bound = check_core(truth, core)
-            assert bound < Fraction(1, 2), (path, core, bound)
+            if not bound < Fraction(1, 2):
+                die(f'not a core: bound {bound} >= 1/2 in {path}: {core}')
             worst = max(worst, bound)
             if tuple(support) not in seen_support:
                 seen_support.add(tuple(support))
                 cores.append(support)
     print(f'farkas: {len(cores)} distinct core supports valid over {truth.shape[1]} full rankings; worst bound {worst}')
+    print(f'worst_bound={worst}')
 
     clauses = []
     for w in SETS:

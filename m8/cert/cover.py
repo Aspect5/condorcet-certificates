@@ -13,6 +13,16 @@ import itertools as it
 import os
 import sys
 
+# Explicit checks, never bare asserts (python -O strips asserts).
+if sys.flags.optimize:
+    sys.exit('FAIL: cover.py refuses to run under python -O / PYTHONOPTIMIZE')
+
+
+def need(cond, msg):
+    if not cond:
+        sys.exit(f'FAIL: {msg}')
+
+
 M = 8
 SETS = list(it.combinations(range(M), 3))
 EVENTS = [(w, c) for w in SETS for c in range(M) if c not in w]
@@ -35,14 +45,15 @@ cubes, ok = [], True
 for leaf in leaves:
     with open(leaf, 'rb') as f:
         head, body = f.read().split(b'\n', 1)
-    assert body.startswith(bbody), f'{leaf}: body does not extend base'
+    need(body.startswith(bbody), f'{leaf}: body does not extend base')
     extra = [l for l in body[len(bbody):].decode().split('\n') if l]
     units = [int(l.split()[0]) for l in extra]
-    assert all(len(l.split()) == 2 and l.split()[1] == '0' and 0 < u <= 280 for l, u in zip(extra, units))
+    need(all(len(l.split()) == 2 and l.split()[1] == '0' and 0 < u <= 280 for l, u in zip(extra, units)),
+         f'{leaf}: extra clauses are not positive units in 1..280')
     v, c = map(int, head.split()[2:])
-    assert v == bv and c == bc + len(units), f'{leaf}: header mismatch'
+    need(v == bv and c == bc + len(units), f'{leaf}: header mismatch')
     cube = {EVENTS[u - 1][0]: EVENTS[u - 1][1] for u in units}
-    assert len(cube) == len(units), f'{leaf}: two units on one 3-set'
+    need(len(cube) == len(units), f'{leaf}: two units on one 3-set')
     cubes.append(cube)
     rest = os.path.basename(leaf)[:-4].replace('A145-none-c456-', '', 1)
     tag = ('Lc456-' if '-' in rest else 'Lcube-456-') + rest
@@ -64,8 +75,8 @@ for line in bbody.decode().split('\n'):
 
 
 def branch_ok(w):
-    need = frozenset(EVENTS.index((w, c)) + 1 for c in range(M) if c not in w)
-    assert need in alo, f'base lacks the at-least-one clause for {w}'
+    lits = frozenset(EVENTS.index((w, c)) + 1 for c in range(M) if c not in w)
+    need(lits in alo, f'base lacks the at-least-one clause for {w}')
     return True
 
 
