@@ -1,0 +1,159 @@
+{
+  "source_sha256": "4fe9d02c36990847710b2d877fc3f674ebd755c974b3bbae1740b3a5efb441d2",
+  "source_cores": 160,
+  "distinct_supports": 145,
+  "rankings_checked_per_core": 40320,
+  "worst_core_bound": "9/19",
+  "variables": 280,
+  "clauses": 4161137,
+  "orbit_clauses": 4160520,
+  "base_sha256": "348efbbbbf22f01677e1df2becbffcc1e921afac516431562589ab369d1844cc",
+  "leaves": {
+    "Lcube-456-3": {
+      "sha256": "4f867f16a67f0b6ab56983d6d57fd3e75ec724e10474a8ffd6c6e96b5fc6e36c",
+      "units": [
+        264
+      ]
+    },
+    "Lc456-0-567-0": {
+      "sha256": "c68c0982ce265b838757670231ee4bea043a4fe5253974a7f3bbcc624c3d2d52",
+      "units": [
+        261,
+        276
+      ]
+    },
+    "Lc456-0-567-1": {
+      "sha256": "a910d7cea0df58e85183c9b3b29bc20dd6fb2e752dac187b18a1f0a39a08cf65",
+      "units": [
+        261,
+        277
+      ]
+    },
+    "Lc456-0-567-2": {
+      "sha256": "ee807a683e6f708d18e4bf2fa2d6943e7b420f01ad22b5c20f8bfad884c98708",
+      "units": [
+        261,
+        278
+      ]
+    },
+    "Lc456-0-567-3": {
+      "sha256": "b3b01a94031de1e70c614eebda67776932d7d9c7360c3af314ad4b9ad8650e0c",
+      "units": [
+        261,
+        279
+      ]
+    },
+    "Lc456-0-567-4": {
+      "sha256": "be4a20418c14a6789faebe2e22ae850cdfba190304b021c2a5891487ab337cf4",
+      "units": [
+        261,
+        280
+      ]
+    },
+    "Lc456-1-567-0": {
+      "sha256": "c09f6a3828e3650e2f1131b090a964fa09edad40e2063c766095a37c75c140aa",
+      "units": [
+        262,
+        276
+      ]
+    },
+    "Lc456-1-567-1": {
+      "sha256": "071e3790d0d85462a373153858b5ac17117c1e2d79313c0faad3118e35527e09",
+      "units": [
+        262,
+        277
+      ]
+    },
+    "Lc456-1-567-2": {
+      "sha256": "7a0553ac670c2c110b0c075a72a2c0b83d190ef8558d2001d58ca06c9d06445a",
+      "units": [
+        262,
+        278
+      ]
+    },
+    "Lc456-1-567-3": {
+      "sha256": "2e2e95ea24454aee066cc29cdd8ce813585b9fd8cd1d4dd47144c3a5175f2ef7",
+      "units": [
+        262,
+        279
+      ]
+    },
+    "Lc456-1-567-4": {
+      "sha256": "c197c912476f50f422bd4efc306bee2ba7b6737e886561467ad870def6224772",
+      "units": [
+        262,
+        280
+      ]
+    },
+    "Lc456-2-567-0": {
+      "sha256": "81c6a809d4e46668188c4782df1af3d884e64244e2d2dcbe9cd24d376467356b",
+      "units": [
+        263,
+        276
+      ]
+    },
+    "Lc456-2-567-1": {
+      "sha256": "5d4888a05da26b27ce272c1730ec56177cb1194c13047128768c2723e98d6df6",
+      "units": [
+        263,
+        277
+      ]
+    },
+    "Lc456-2-567-2": {
+      "sha256": "ed157d6285c60bebe8f5d67071412cb8b50302df6012fa045f11d48c9078739b",
+      "units": [
+        263,
+        278
+      ]
+    },
+    "Lc456-2-567-3": {
+      "sha256": "77e355e242144c322c67cfe4c9a4bd5a7c7fb5080cbaf7fa9de7b838811a7faf",
+      "units": [
+        263,
+        279
+      ]
+    },
+    "Lc456-2-567-4": {
+      "sha256": "547c805358aae0b3a615e40e2b4048d73848824b2fd6f0b3b13e149bb6c3ff3d",
+      "units": [
+        263,
+        280
+      ]
+    },
+    "Lc456-7-457-0": {
+      "sha256": "e0aa88b65be95830933eb853bb011dc826656c208da4ad3034443bc8d20d9acc",
+      "units": [
+        265,
+        266
+      ]
+    },
+    "Lc456-7-457-1": {
+      "sha256": "4d5a0368eff250fe9ccf6ea004c0c23300b829814cf97e4b00f56e793d0b4cb3",
+      "units": [
+        265,
+        267
+      ]
+    },
+    "Lc456-7-457-2": {
+      "sha256": "12205b7271f481c06c9486284228385d17693a8898074de46111c8608b7ad35a",
+      "units": [
+        265,
+        268
+      ]
+    },
+    "Lc456-7-457-3": {
+      "sha256": "a1ddef795a334e8fa62554a18ecd6dc56917e923f528b3d96b995bef7ef6d240",
+      "units": [
+        265,
+        269
+      ]
+    },
+    "Lc456-7-457-6": {
+      "sha256": "ab3149a03c960539e314745159c2a74a0fe380cd17f12cbd8bd5f670367a3bf6",
+      "units": [
+        265,
+        270
+      ]
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "metadata": {
+    "upload_type": "dataset",
+    "title": "Size-3 Condorcet winning sets for 7 and 8 candidates: exact SAT certificates with LRAT proofs",
+    "publication_date": "2026-09-29",
+    "version": "v1",
+    "creators": [
+      {"name": "Seelman, Peter", "affiliation": "Institute for Recursive Self Improvement (IRSI)"}
+    ],
+    "description": "<p>Machine-checked certificates that every election with 7 or 8 candidates and any number of voters (strict rankings) has a Condorcet winning set of size 3, in the sense of Elkind, Lang and Saffidine (2015): for every outside candidate c, fewer than n/2 voters rank c above every member of the set. For odd n this follows from Elkind, Lang and Saffidine (2015), Corollary 1; the even-n cases are new as exact results. A counterexample to the size-3 conjecture of Charikar et al. (STOC 2025) therefore needs at least 9 candidates.</p><p>Contents: CNF generators with exact rational Farkas-core checks, the cores, an independent second generator for each case, per-cube hashes, 21 CaDiCaL LRAT proofs for m = 8 (5.05 GB zstd) and one for m = 7 (55 MB xz), all verified with the formally verified checker cake_lpr, and verify.sh, which regenerates every CNF and rechecks every proof. MANIFEST.sha256.ots anchors the hash of MANIFEST.sha256 in Bitcoin block 969212 (2026-09-29 22:18:32 UTC), which proves the manifest existed by that block's time; matching hashes tie the proofs and CNFs to that manifest.</p><p>The certificates were found, built and checked by AI agents at IRSI (Anthropic Claude and OpenAI Codex models) under the direction of Peter Seelman. Not peer reviewed.</p>",
+    "access_right": "open",
+    "license": "cc-by-4.0",
+    "keywords": ["computational social choice", "Condorcet winning set", "Condorcet dimension", "SAT", "LRAT", "proof certificate", "cake_lpr"],
+    "related_identifiers": [
+      {"identifier": "arXiv:2604.19851", "relation": "references", "scheme": "arxiv"},
+      {"identifier": "arXiv:2411.03390", "relation": "references", "scheme": "arxiv"},
+      {"identifier": "10.1007/s00355-014-0853-4", "relation": "references", "scheme": "doi"},
+      {"identifier": "https://github.com/Aspect5/condorcet-certificates", "relation": "isSupplementedBy", "scheme": "url"}
+    ],
+    "notes": "Verify: ./verify.sh (about 25 CPU-minutes, 30 GB RAM). Manifest sha256 ae319c72fe646532c836856be0f86572b8c92d10b84c6de9050815d572c77555."
+  }
+}

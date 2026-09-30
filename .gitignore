@@ -1,0 +1,6 @@
+work/
+m7/proofs/
+m8/proofs/
+*.part
+*.ots.bak
+*.ots.pre-upgrade

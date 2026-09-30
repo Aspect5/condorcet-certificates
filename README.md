@@ -1,0 +1,124 @@
+# Size-3 Condorcet winning sets for 7 and 8 candidates: exact certificates
+
+Institute for Recursive Self Improvement (IRSI), 2026-09-29.
+Status: verified by an independent recomputation and by a formally verified LRAT
+checker (cake_lpr). Not peer reviewed.
+
+## Claims
+
+Setting: n voters, each with a strict ranking of m candidates. A set W of
+candidates is a *Condorcet winning set* if for every candidate c outside W,
+fewer than n/2 voters rank c above every member of W (equivalently, a strict
+majority prefers some member of W to c). A tie at exactly n/2 counts against W.
+This is the definition of Elkind, Lang and Saffidine (2015), Charikar et al.
+(2025) and the Epoch AI open problem "Condorcet winning sets".
+
+1. **m = 8.** Every election with 8 candidates and any number of voters has a
+   Condorcet winning set of size 3.
+2. **m = 7.** The same holds for 7 candidates (implied by claim 1 by adding a
+   candidate ranked last by everyone, and certified separately and much more
+   cheaply).
+
+So a counterexample to the conjecture of Charikar et al. that size 3 always
+suffices needs at least 9 candidates.
+
+What is new. For odd n both claims follow from Elkind, Lang and Saffidine
+(2015), Corollary 1, which gives size 3 for odd n up to m = 14 and for all n up
+to m = 6. For even n at m = 7 and 8 that corollary gives only size 4.
+Zilberstein, Berker, Li and Martins (arXiv:2604.19851, 2026) bound m = 7 by a
+floating-point MILP (upper bound 0.429 < 1/2, no certificate) and report no
+m = 8, k = 3 bound below 1/2. The even-n cases are therefore new as exact results, and
+m = 8 even n is new in any form, as far as we found.
+
+## Method
+
+Suppose an election has no Condorcet winning set of size 3. Then every 3-set W
+has a challenger c ranked above all of W by at least half the voters. Encode the
+choice of challenger as 280 Boolean variables (W, c) for m = 8 (140 for m = 7),
+exactly one per W, and fix one challenger by symmetry. A *core* is a set of
+events (W, c) with positive rational weights summing to 1 such that every single
+ranking satisfies events of total weight below 1/2; no election can then satisfy
+all events of a core at level 1/2. Each core is checked exactly over all m!
+rankings. Adding "not all of these" for every relabeling of every core gives a
+CNF formula that is satisfiable if a counterexample exists.
+
+- m = 8: 145 distinct cores (worst bound 9/19), 4,161,137 clauses, split into 21
+  cubes; CaDiCaL 3.0.1 proves each cube unsatisfiable and writes an LRAT proof
+  (5.05 GB zstd in total); cake_lpr verifies all 21. `cover.py` checks that the
+  cubes cover every case. The argument is self-contained: it does not use the
+  m <= 6 theorem or the m = 7 certificate. Full argument: `m8/cert/CERT.md`.
+- m = 7: 9 cores (worst bound 2/5), 22,226 clauses, one LRAT proof (55 MB xz),
+  verified by cake_lpr, drat-trim and lrat-check.
+
+Trusted base: the CNF generators (about 150 lines of Python, event indexing and
+relabeling) and cake_lpr. Each generator was written twice, independently: for
+m = 8 the two write byte-identical CNFs (`m8/recompute/`), for m = 7 they write
+the same clause set (`m7/recompute/`). There is no Lean statement of the encoding.
+
+## Verify
+
+```
+./verify.sh            # everything: about 25 CPU-minutes, 30 GB RAM, 5.1 GB download
+./verify.sh --quick    # hashes and CNF regeneration only, a few minutes
+```
+
+`verify.sh` checks `MANIFEST.sha256`, builds cake_lpr from the pinned upstream
+commit, regenerates every CNF from the cores (rechecking each core exactly),
+compares CNF hashes, downloads any missing proof from the GitHub release and
+checks its hash, runs cake_lpr on every proof and requires `s VERIFIED UNSAT`,
+then runs `cover.py`. Needs python3 with numpy, gcc, git, curl, zstd and xz.
+
+`MANIFEST.sha256` lists every file of the certificate, including the CNFs (which
+`verify.sh` regenerates) and the proofs. Its OpenTimestamps file
+`MANIFEST.sha256.ots` anchors the manifest's hash in Bitcoin block 969212
+(2026-09-29 22:18:32 UTC), which proves the manifest existed by that block's
+time; matching hashes tie the proofs and CNFs to that manifest. Check it with
+`ots verify MANIFEST.sha256.ots` (pip install opentimestamps-client; this needs
+a Bitcoin node, or run `ots --no-bitcoin verify MANIFEST.sha256.ots` and compare
+the merkle root it prints with the block's).
+
+`stamp-2026-09-29T2114Z/` keeps the first manifest and its OpenTimestamps file,
+which anchors that manifest's hash in Bitcoin block 969208 (2026-09-29 21:42:56
+UTC). It predates corrections to three documentation files listed in it; its
+proof and CNF hashes are identical to the current manifest's. Check it with
+`cd stamp-2026-09-29T2114Z && ots verify MANIFEST.sha256.ots`.
+
+## Files
+
+| path | what |
+|---|---|
+| `m8/cert/gen.py`, `mkcube.py`, `cover.py`, `control.py` | CNF generator with exact core check, cube writer, cube coverage check, random-profile control |
+| `m8/cert/long-160f-all-cores.json` | the rational cores for m = 8 |
+| `m8/cert/CERT.md`, `LEAVES.tsv`, `CNF-HASHES.txt` | soundness argument, per-cube hashes and timings |
+| `m8/recompute/` | independent second generator and its outputs |
+| `m7/mkcnf.py`, `m7/m7k3.json` | m = 7 generator and cores |
+| `m7/recompute/` | independent m = 7 recomputation |
+| release assets | 21 `*.lrat.zst` (m = 8) and `m7k3.lrat.xz` (m = 7) |
+| `stamp-2026-09-29T2114Z/` | first manifest and its OpenTimestamps file |
+
+## How this was produced
+
+The certificates were found, built and checked by AI agents at IRSI (Anthropic
+Claude and OpenAI Codex models) under the direction of Peter Seelman. The m = 8
+certificate was built by one agent and recomputed by another, from a different
+provider, with its own generator. The m = 7 certificate was built, recomputed
+and proof-checked by three separate agents. A human has not checked the proofs
+by hand; the evidence is the verified checker output that `verify.sh` reproduces.
+
+## Credit and references
+
+- E. Elkind, J. Lang, A. Saffidine. Condorcet winning sets. Social Choice and
+  Welfare 44 (2015) 493-517, doi:10.1007/s00355-014-0853-4. Defines the
+  problem; Corollary 1 settles odd n.
+- M. Charikar, A. Lassota, P. Ramakrishnan, A. Vetta, K. Wang. Six candidates
+  suffice to win a voter majority. STOC 2025, arXiv:2411.03390. Conjectures size 3.
+- I. Zilberstein, R. E. Berker, Y. Li, R. Martins. Is Four Enough? Automated
+  Reasoning Approaches and Dual Bounds for Condorcet Dimensions of Elections.
+  arXiv:2604.19851 (GAIW 2026). MILP bounds for small m, including the
+  floating-point m = 7 bound.
+- Y. K. Tan, M. J. H. Heule, M. O. Myreen. Verified propagation redundancy and
+  compositional UNSAT checking in CakeML (2023); the cake_lpr checker,
+  https://github.com/tanyongkiam/cake_lpr.
+- CaDiCaL SAT solver, A. Biere et al.
+
+Contact: peter@irsi.ai
