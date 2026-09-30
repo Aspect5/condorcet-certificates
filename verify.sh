@@ -41,9 +41,15 @@ fetch() {  # fetch PATH: download a missing proof, then check its manifest hash
   [ "$(sha "$1")" = "$(want "$1")" ] || fail "proof hash $1"
 }
 
-# The generators refuse -O themselves; check the interpreter here too, before any work.
-"$PY" -c 'import sys; sys.exit(sys.flags.optimize)' \
-  || fail "PYTHON runs with -O or PYTHONOPTIMIZE set; the exact checks would be skipped"
+# The exact checks must run. PYTHONOPTIMIZE is dropped for this script (the checks
+# then run in full); an interpreter that still optimizes (PYTHON='python3 -O') is
+# refused here, and the generators also refuse to run under -O on their own.
+if [ -n "${PYTHONOPTIMIZE:-}" ]; then
+  echo "note: PYTHONOPTIMIZE=$PYTHONOPTIMIZE ignored; the exact checks always run"
+  unset PYTHONOPTIMIZE
+fi
+$PY -c 'import sys; sys.exit(sys.flags.optimize)' \
+  || fail "PYTHON ($PY) runs with -O; the exact checks would be skipped"
 
 say "1. hashes of the shipped files (MANIFEST.sha256)"
 got=$(sha MANIFEST.sha256)

@@ -74,9 +74,9 @@ memory cap, with 25.4 GiB peak RSS (`m8/recompute/README.md`). Use a machine wit
 at least 32 GiB and keep other large jobs off it; a larger `CAKE_HEAP_MB` needs
 more memory, not less.
 
-What `verify.sh` enforces: it refuses to run if `PYTHON` has `-O` or
-`PYTHONOPTIMIZE` set (the generators refuse too, and none of their checks are
-Python `assert`s); it requires the generators to print `worst_bound=2/5` (m = 7)
+What `verify.sh` enforces: it drops `PYTHONOPTIMIZE` (with a note) and refuses
+a `PYTHON` that still runs with `-O`, and the generators refuse `-O` on their
+own; none of their checks are Python `assert`s; it requires the generators to print `worst_bound=2/5` (m = 7)
 and `worst_bound=9/19` (m = 8); it prints `sha256(MANIFEST.sha256)` and fails
 unless it equals the timestamped
 `ae319c72fe646532c836856be0f86572b8c92d10b84c6de9050815d572c77555`; and it fails
