@@ -24,11 +24,14 @@ suffices needs at least 9 candidates.
 
 What is new. For odd n both claims follow from Elkind, Lang and Saffidine
 (2015), Corollary 1, which gives size 3 for odd n up to m = 14 and for all n up
-to m = 6. For even n at m = 7 and 8 that corollary gives only size 4.
-Zilberstein, Berker, Li and Martins (arXiv:2604.19851, 2026) bound m = 7 by a
-floating-point MILP (upper bound 0.429 < 1/2, no certificate) and report no
-m = 8, k = 3 bound below 1/2. The even-n cases are therefore new as exact results, and
-m = 8 even n is new in any form, as far as we found.
+to m = 6. For even n at m = 7 that corollary gives only size 4, but size 3
+follows from the proof of their Proposition 4 together with the fact that every
+tournament on 6 vertices has a dominating set of size 2 (Erdos 1963); the m = 7
+certificate here is an independent exact check of that case. For even n at
+m = 8 no published argument gives size 3: Zilberstein, Berker, Li and Martins
+(arXiv:2604.19851, 2026) report a floating-point MILP upper value 0.429 < 1/2
+for m = 7 and no m = 8, k = 3 bound below 1/2. The m = 8, even-n case is new,
+as far as we found.
 
 ## Method
 
@@ -134,6 +137,9 @@ by hand; the evidence is the verified checker output that `verify.sh` reproduces
   Reasoning Approaches and Dual Bounds for Condorcet Dimensions of Elections.
   arXiv:2604.19851 (GAIW 2026). MILP bounds for small m, including the
   floating-point m = 7 bound.
+- P. Erdos. On a problem in graph theory. Math. Gazette 47 (1963) 220-223.
+  Every 6-vertex tournament has a dominating set of size 2; with ELS15
+  Proposition 4 this gives size 3 for m = 7, even n.
 - Y. K. Tan, M. J. H. Heule, M. O. Myreen. Verified propagation redundancy and
   compositional UNSAT checking in CakeML (2023); the cake_lpr checker,
   https://github.com/tanyongkiam/cake_lpr.
