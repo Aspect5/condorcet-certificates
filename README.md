@@ -27,11 +27,16 @@ What is new. For odd n both claims follow from Elkind, Lang and Saffidine
 to m = 6. For even n at m = 7 that corollary gives only size 4, but size 3
 follows from the proof of their Proposition 4 together with the fact that every
 tournament on 6 vertices has a dominating set of size 2 (Erdos 1963); the m = 7
-certificate here is an independent exact check of that case. For even n at
-m = 8 no published argument gives size 3: Zilberstein, Berker, Li and Martins
-(arXiv:2604.19851, 2026) report a floating-point MILP upper value 0.429 < 1/2
-for m = 7 and no m = 8, k = 3 bound below 1/2. The m = 8, even-n case is new,
-as far as we found.
+certificate here is an independent exact check of that case. For m = 8 (and
+all m <= 8, k >= 3), version 2 of Zilberstein, Martins and Berker
+(arXiv:2604.19851v2, "MILP the Gap", posted 2026-10-10) states that every
+election admits a Condorcet winning set, independent of the number of voters,
+from a floating-point mixed-integer program (Gurobi). This repository does not
+claim to be first with that statement. What it adds is an exact, independently
+checkable proof: SAT certificates checked by the formally verified cake_lpr
+checker and exact rational cores, timestamped in Bitcoin on 2026-09-29 (see
+below), before version 2 was posted. Version 1 of that paper (April 2026) gave
+only a floating-point bound for m = 7 and no m = 8, k = 3 bound below 1/2.
 
 ## Method
 
@@ -133,6 +138,9 @@ by hand; the evidence is the verified checker output that `verify.sh` reproduces
   problem; Corollary 1 settles odd n.
 - M. Charikar, A. Lassota, P. Ramakrishnan, A. Vetta, K. Wang. Six candidates
   suffice to win a voter majority. STOC 2025, arXiv:2411.03390. Conjectures size 3.
+- I. Zilberstein, R. Martins, R. E. Berker. MILP the Gap: An Automated
+  Reasoning Approach to Condorcet's Paradox. arXiv:2604.19851v2 (2026-10-10).
+  Floating-point MILP result for all m <= 8, k >= 3.
 - I. Zilberstein, R. E. Berker, Y. Li, R. Martins. Is Four Enough? Automated
   Reasoning Approaches and Dual Bounds for Condorcet Dimensions of Elections.
   arXiv:2604.19851 (GAIW 2026). MILP bounds for small m, including the
